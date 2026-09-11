@@ -8,45 +8,110 @@ const updateHeaderOnScroll = () => {
 window.addEventListener('scroll', updateHeaderOnScroll, { passive: true });
 updateHeaderOnScroll();
 
+let menuScrollLocked = false;
+let menuScrollPosition = 0;
+
+const syncMenuScrollLock = () => {
+  const shouldLock = header.classList.contains('open') && window.matchMedia('(max-width: 640px)').matches;
+
+  if (shouldLock && !menuScrollLocked) {
+    menuScrollPosition = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${menuScrollPosition}px`;
+    document.body.style.right = '0';
+    document.body.style.left = '0';
+    document.body.style.width = '100%';
+    menuScrollLocked = true;
+  } else if (!shouldLock && menuScrollLocked) {
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.right = '';
+    document.body.style.left = '';
+    document.body.style.width = '';
+    menuScrollLocked = false;
+    window.scrollTo({ top: menuScrollPosition, left: 0, behavior: 'instant' });
+  }
+};
+
 menuButton.addEventListener('click', () => {
   const open = header.classList.toggle('open');
   menuButton.setAttribute('aria-expanded', String(open));
   menuButton.setAttribute('aria-label', open ? '메뉴 닫기' : '메뉴 열기');
-  document.body.style.overflow = open ? 'hidden' : '';
+  syncMenuScrollLock();
+});
+window.addEventListener('resize', () => {
+  if (window.matchMedia('(min-width: 1101px)').matches) {
+    header.classList.remove('open');
+    menuButton.setAttribute('aria-expanded', 'false');
+    menuButton.setAttribute('aria-label', '메뉴 열기');
+  }
+  syncMenuScrollLock();
 });
 document.querySelectorAll('.gnb a').forEach(link => link.addEventListener('click', () => {
   header.classList.remove('open');
   menuButton.setAttribute('aria-expanded', 'false');
-  document.body.style.overflow = '';
+  menuButton.setAttribute('aria-label', '메뉴 열기');
+  syncMenuScrollLock();
 }));
 const scheduleData = {
-  day1: [
-    { title: '기억의 무대', items: ['개막식 및 평화 퍼포먼스', '기억의 콘서트', '평화 토크 콘서트', '청소년 평화 합창', '시민 참여 공연', '기억의 영화 상영', '운영 종료'] },
-    { title: '피스 캠퍼스', items: ['평화도시 부산 이야기', '기억 기록 워크숍', '글로벌 피스 토크', '시민 라운드테이블', '평화 교육 세미나', '내일을 위한 대화', '운영 종료'] },
-    { title: '커넥트 랩', items: ['평화의 메시지 월 오픈', '평화 배지 랩', 'A LINE FOR PEACE', '시민 메시지 채집', '피스 패스포트', '공동 설치작품 제작', '운영 종료'] }
-  ],
-  day2: [
-    { title: '연결의 무대', items: ['시민 평화 퍼레이드', '세계음악 콘서트', '세대공감 토크쇼', '평화 댄스 프로젝트', '부산 청년 공연', '별빛 평화 콘서트', '운영 종료'] },
-    { title: '글로벌 빌리지', items: ['세계문화 인사이드', '어린이 문화 교실', '글로벌 피스 퀴즈', '전통의상 체험', '세계 간식 이야기', '평화 네트워킹', '운영 종료'] },
-    { title: '미래의 정원', items: ['가족 요가 클래스', '평화 그림책 낭독', '업사이클링 공방', '어린이 평화 놀이터', '정원 음악회', '빛의 카드 만들기', '운영 종료'] }
-  ],
-  day3: [
-    { title: '미래의 무대', items: ['평화 청소년 포럼', '내일의 목소리', '시민 약속 낭독', '평화 예술 공연', '미래세대 콘서트', '폐막식 및 피날레', '운영 종료'] },
-    { title: '피스 캠퍼스', items: ['지속가능한 도시', '청소년 아이디어톤', '평화교육 사례 발표', '시민 정책 제안', '미래 평화 워크숍', '참가자 네트워킹', '운영 종료'] },
-    { title: '커넥트 랩', items: ['메시지 월 아카이빙', '피스 패스포트 완주', '공동작품 마무리', '평화 사진 인화', '미래 편지 봉인식', '작품 전시 투어', '운영 종료'] }
-  ]
+  day1: {
+    times: ['13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'],
+    columns: [
+      { title: '평화 스테이지', items: ['오프닝 피스 버스킹', '피스 버스킹 1', '-', '개막공연: 기억의 선', '개막식: PEACE CONTINUES.', '기억 콘서트: 1부', '기억 콘서트: 2부', '평화의 빛 세레머니'] },
+      { title: '메모리 아카이브', items: ['기억의 기록전 개관', '도슨트 투어 1', '구술기록 영상 상영', '도슨트 투어 2', '-', '큐레이터 토크', '자유 관람', '운영 종료'] },
+      { title: '피스 캠퍼스', items: ['-', '기조 토크: 기억은 어떻게 이어지는가', '워크숍: 나의 기억 기록하기', '-', '-', '-', '-', '운영 종료'] },
+      { title: '커넥트 랩', items: ['평화 메시지 월 오픈', '평화 배지 랩', 'A LINE FOR PEACE', '시민 메시지 채집', '-', '평화의 빛 카드 만들기', '공동 설치작품 제작', '운영 종료'] }
+    ]
+  },
+  day2: {
+    times: ['10:00', '11:00', '12:00', '13:00', '14:00', '15:30', '16:00', '17:00', '18:30', '20:00'],
+    columns: [
+      { title: '평화 스테이지', items: ['평화산책 사전 안내', '가족공연: 안녕, 평화', '글로벌 버스킹', 'ONE WORLD STAGE 1', '스트리트 퍼포먼스', '시민 평화합창', 'ONE WORLD STAGE 2', '댄스 프로젝트: CONNECT', '평화콘서트: CONNECTED VOICES', 'ALL TOGETHER FINALE'] },
+      { title: '메모리 아카이브', items: ['전시 개관', '도슨트 투어 1', '구술기록 영상 상영', '도슨트 투어 2', '자유 관람', '기억 낭독회', '도슨트 투어 3', '특별 영상 상영', '운영 종료', '-'] },
+      { title: '피스 캠퍼스', items: ['어린이 평화교실', '평화 그림책 토크', '-', '세계시민토크: 일상의 평화', '청년평화포럼: NEXT PEACE', '오픈 다이얼로그', 'SMALL ACTION LAB', '-', '운영 종료', '-'] },
+      { title: '커넥트 랩', items: ['피스 패스포트 시작', '평화 배지 랩', '평화 엽서 만들기', 'A LINE FOR PEACE', '시민 공동벽화', '시민 공동벽화', '평화 메시지 프린팅', '공동 설치작품 제작', '운영 종료', '-'] }
+    ]
+  },
+  day3: {
+    times: ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '17:40'],
+    columns: [
+      { title: '평화 스테이지', items: ['평화산책: MEMORY TO FUTURE', '가족공연: 내일의 정원', '어쿠스틱 피스 버스킹', '청소년 평화 프로젝트 발표', '시민예술무대', '피스 버스킹 파이널', '폐막 콘서트 1부', '폐막 콘서트 2부', '시민 평화선언 및 폐막식: PROMISE 2026'] },
+      { title: '메모리 아카이브', items: ['전시 개관', '도슨트 투어 1', '구술기록 영상 상영', '도슨트 투어 2', '자유 관람', '큐레이터 토크', '마지막 도슨트 투어', '전시 종료', '-'] },
+      { title: '피스 캠퍼스', items: ['-', '어린이 평화 스튜디오', '-', 'YOUNG PEACE MAKERS', '시민 라운드테이블: 오늘 이후의 평화', '미래 토크: HOW PEACE CONTINUES', '-', '-', '-'] },
+      { title: '커넥트 랩', items: ['미래 약속 카드', '미래의 정원 만들기', '평화 배지 랩', 'A LINE FOR PEACE', '약속의 깃발 만들기', '공동 설치작품 완성', '시민 메시지 정리', '참여 프로그램 종료', '-'] }
+    ]
+  }
 };
 
 const renderSchedule = day => {
-  const columns = document.querySelectorAll('.timetable > div:not(.time-col)');
-  scheduleData[day].forEach((columnData, columnIndex) => {
-    const column = columns[columnIndex];
-    column.querySelector('b').textContent = columnData.title;
-    column.querySelectorAll('span').forEach((cell, itemIndex) => {
-      cell.textContent = columnData.items[itemIndex];
+  const timetable = document.querySelector('.timetable');
+  const dayData = scheduleData[day];
+  if (!timetable || !dayData) return;
+
+  const createColumn = (title, items, className = '') => {
+    const column = document.createElement('div');
+    if (className) column.className = className;
+
+    const heading = document.createElement('b');
+    heading.textContent = title;
+    column.appendChild(heading);
+
+    items.forEach(item => {
+      const cell = document.createElement('span');
+      cell.textContent = item;
+      column.appendChild(cell);
     });
-  });
+
+    return column;
+  };
+
+  timetable.replaceChildren(
+    createColumn('시간', dayData.times, 'time-col'),
+    ...dayData.columns.map(column => createColumn(column.title, column.items))
+  );
 };
+
+renderSchedule('day1');
 
 document.querySelectorAll('.day-tabs button').forEach(button => button.addEventListener('click', () => {
   document.querySelectorAll('.day-tabs button').forEach(item => item.classList.remove('active'));
@@ -55,23 +120,14 @@ document.querySelectorAll('.day-tabs button').forEach(button => button.addEventL
 }));
 document.querySelectorAll('a[href="#"]').forEach(link => link.addEventListener('click', event => event.preventDefault()));
 
-const programDetails = [
-  '평화로운 내일을 상상하며 미래 세대에게 전하고 싶은 메시지를 편지로 남기는 참여 프로그램입니다.',
-  '행사장 곳곳의 평화 미션을 수행하고 스탬프를 모아 완주 기념품을 받아보세요.',
-  '평화를 상징하는 문구와 그림을 활용해 나만의 배지를 직접 만들어보는 체험입니다.',
-  '참가자들이 한 줄씩 그림을 이어 그리며 모두의 평화 작품을 완성합니다.',
-  '여러 나라의 전통문화와 평화 활동을 놀이와 만들기를 통해 경험할 수 있습니다.',
-  '축제의 상징 조형물과 함께 사진을 남기고 평화의 순간을 오래 기억해보세요.'
-];
-
 const programContents = [
   { image: 'assets/img/festival.png', category: '전시', title: '기억의 기록전', description: '사진과 문서, 영상과 목소리를 통해 기억이 세대를 넘어 전해지는 과정을 살펴보는 전시입니다.' },
-  { image: 'assets/img/moment1.png', category: '참여', title: '내일에게 보내는 편지', description: programDetails[0] },
-  { image: 'assets/img/moment2.png', category: '미션', title: '피스 패스포트', description: programDetails[1] },
-  { image: 'assets/img/moment3.png', category: '창작', title: '평화 배지 랩', description: programDetails[2] },
-  { image: 'assets/img/moment4.png', category: '창작', title: '평화 그림 함께 그리기', description: programDetails[3] },
-  { image: 'assets/img/moment5.png', category: '체험', title: '글로벌 문화체험', description: programDetails[4] },
-  { image: 'assets/img/moment3.png', category: '포토', title: '피스 포토존', description: programDetails[5] }
+  { image: 'assets/img/moment1.png', category: '참여', title: '내일에게 보내는 편지', description: '미래의 누군가에게 전하고 싶은 평화의 메시지를 작성해 아카이브에 남기는 참여 프로그램입니다.' },
+  { image: 'assets/img/moment2.png', category: '미션', title: '피스 패스포트', description: '행사장 네 개 공간의 프로그램에 참여하고 스탬프를 모으면 기념 평화 엽서를 받을 수 있습니다.' },
+  { image: 'assets/img/moment3.png', category: '창작', title: '평화 배지 랩', description: '평화를 의미하는 여러 언어와 그래픽 요소를 조합해 나만의 배지를 만드는 프로그램입니다.' },
+  { image: 'assets/img/moment4.png', category: '창작', title: '평화 그림 함께 그리기', description: '점과 선, 교차점을 활용해 시민이 함께 하나의 대형 평화 그림을 완성합니다.' },
+  { image: 'assets/img/moment5.png', category: '체험', title: '글로벌 문화체험', description: '세계 여러 지역의 인사말과 생활문화를 체험하며 서로의 차이를 이해하는 참여 공간입니다.' },
+  { image: 'assets/img/moment3.png', category: '포토', title: '피스 포토존', description: '축제의 열린 프레임과 연결된 선을 활용해 구성한 공식 촬영 구간입니다.' }
 ];
 
 const programFeature = document.querySelector('.program-feature');
@@ -79,219 +135,134 @@ const programFeatureImage = programFeature?.querySelector(':scope > img');
 const programFeatureCategory = programFeature?.querySelector('span');
 const programFeatureTitle = programFeature?.querySelector('h3');
 const programFeatureDescription = programFeature?.querySelector('p');
-const programList = document.querySelector('.program-list');
-const programGrid = document.querySelector('.program-grid');
-let programMoveTimer;
-let programGhost;
-let programMobileTimer;
-let programMobileGhost;
+const programItems = [...document.querySelectorAll('.program-list > .program-item')];
+let programUpdateId = 0;
 
-const moveProgramFeatureBefore = (item, updateContent) => {
-  if (!programFeature || !programList) return;
-  if (programFeature.nextElementSibling === item) {
-    updateContent();
-    return;
-  }
+const preloadProgramImage = source => new Promise(resolve => {
+  const image = new Image();
+  image.onload = resolve;
+  image.onerror = resolve;
+  image.src = source;
+  if (image.complete) resolve();
+});
 
-  window.clearTimeout(programMoveTimer);
-  if (programGhost) {
-    programGhost.replaceWith(programFeature);
-    programGhost = null;
-    programFeature.classList.remove('desktop-collapsed');
-  }
+const activateProgram = async (item, index) => {
+  const content = programContents[index];
+  if (!programFeature || !item || !content) return;
+  if (item.classList.contains('is-active') && programFeature.parentElement === item) return;
 
-  updateContent(true);
-  programGhost = programFeature.cloneNode(true);
-  programGhost.classList.remove('is-changing', 'compact-hidden');
-  programGhost.classList.add('program-feature-ghost', 'desktop-collapsed');
-  programGhost.setAttribute('aria-hidden', 'true');
-  programList.insertBefore(programGhost, item);
-
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      programFeature.classList.add('desktop-collapsed');
-      programGhost?.classList.remove('desktop-collapsed');
-    });
+  const updateId = ++programUpdateId;
+  programItems.forEach(programItem => {
+    programItem.classList.remove('is-active');
+    programItem.setAttribute('aria-expanded', 'false');
+    programItem.setAttribute('aria-pressed', 'false');
   });
 
-  programMoveTimer = window.setTimeout(() => {
-    if (!programGhost) return;
-    programGhost.replaceWith(programFeature);
-    programGhost = null;
-    programFeature.classList.remove('desktop-collapsed');
-  }, 520);
+  item.classList.add('is-active');
+  item.setAttribute('aria-expanded', 'true');
+  item.setAttribute('aria-pressed', 'true');
+  item.appendChild(programFeature);
+  programFeature.classList.add('is-loading');
+
+  await Promise.all([
+    preloadProgramImage(content.image),
+    new Promise(resolve => window.setTimeout(resolve, 160))
+  ]);
+
+  if (updateId !== programUpdateId) return;
+  programFeatureImage.src = content.image;
+  programFeatureImage.alt = `${content.title} 프로그램 사진`;
+  programFeatureCategory.textContent = content.category;
+  programFeatureTitle.textContent = content.title;
+  programFeatureDescription.textContent = content.description;
+  window.requestAnimationFrame(() => programFeature.classList.remove('is-loading'));
 };
 
-document.querySelectorAll('.program-list > div').forEach((item, index) => {
+programItems.forEach((item, index) => {
   item.setAttribute('role', 'button');
   item.setAttribute('tabindex', '0');
-  item.setAttribute('aria-expanded', 'false');
-  item.setAttribute('aria-pressed', 'false');
+  const isActive = item.classList.contains('is-active');
+  item.setAttribute('aria-expanded', String(isActive));
+  item.setAttribute('aria-pressed', String(isActive));
 
-  const selectProgram = (immediate = false) => {
-    const content = programContents[index + 1];
-    document.querySelectorAll('.program-list > div').forEach(programItem => {
-      programItem.classList.remove('selected');
-      programItem.setAttribute('aria-pressed', 'false');
-    });
-    item.classList.add('selected');
-    item.setAttribute('aria-pressed', 'true');
-    if (!programFeature || !content) return;
-    const applyContent = () => {
-      programFeatureImage.src = content.image;
-      programFeatureImage.alt = `${content.title} 프로그램 사진`;
-      programFeatureCategory.textContent = content.category;
-      programFeatureTitle.textContent = content.title;
-      programFeatureDescription.textContent = content.description;
-      programFeature.classList.remove('is-changing');
-    };
-
-    if (immediate) {
-      applyContent();
-    } else {
-      programFeature.classList.add('is-changing');
-      window.setTimeout(applyContent, 160);
-    }
-  };
-
-  const toggleProgram = () => {
-    if (!window.matchMedia('(max-width: 1100px)').matches) {
-      selectProgram();
-      return;
-    }
-
-    window.clearTimeout(programMobileTimer);
-    if (programMobileGhost) {
-      programMobileGhost.remove();
-      programMobileGhost = null;
-    }
-    const willOpen = !item.classList.contains('open');
-    document.querySelectorAll('.program-list > div.open').forEach(openItem => {
-      openItem.classList.remove('open');
-      openItem.setAttribute('aria-expanded', 'false');
-    });
-    item.classList.toggle('open', willOpen);
-    item.setAttribute('aria-expanded', String(willOpen));
-
-    if (!willOpen) {
-      programFeature.classList.add('compact-hidden');
-      return;
-    }
-
-    if (programFeature.classList.contains('compact-hidden')) {
-      selectProgram(true);
-      programList.insertBefore(programFeature, item);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => programFeature.classList.remove('compact-hidden'));
-      });
-    } else {
-      programMobileGhost = programFeature.cloneNode(true);
-      programMobileGhost.classList.remove('is-changing');
-      programMobileGhost.classList.add('program-mobile-ghost');
-      programMobileGhost.setAttribute('aria-hidden', 'true');
-      programFeature.replaceWith(programMobileGhost);
-
-      programFeature.classList.add('compact-hidden');
-      selectProgram(true);
-      programList.insertBefore(programFeature, item);
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          programMobileGhost?.classList.add('compact-hidden');
-          programFeature.classList.remove('compact-hidden');
-        });
-      });
-
-      programMobileTimer = window.setTimeout(() => {
-        programMobileGhost?.remove();
-        programMobileGhost = null;
-      }, 500);
-    }
-  };
-
-  item.addEventListener('click', toggleProgram);
+  item.addEventListener('click', () => activateProgram(item, index));
   item.addEventListener('mouseenter', () => {
     if (window.matchMedia('(min-width: 1101px)').matches) {
-      moveProgramFeatureBefore(item, selectProgram);
+      activateProgram(item, index);
     }
   });
   item.addEventListener('focus', () => {
     if (window.matchMedia('(min-width: 1101px)').matches) {
-      moveProgramFeatureBefore(item, selectProgram);
+      activateProgram(item, index);
     }
   });
   item.addEventListener('keydown', event => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      toggleProgram();
+      activateProgram(item, index);
     }
   });
 });
-
-const syncProgramLayout = () => {
-  if (!programFeature || !programList || !programGrid) return;
-  window.clearTimeout(programMoveTimer);
-  window.clearTimeout(programMobileTimer);
-  if (programMobileGhost) {
-    programMobileGhost.remove();
-    programMobileGhost = null;
-  }
-  if (programGhost) {
-    programGhost.remove();
-    programGhost = null;
-    programFeature.classList.remove('desktop-collapsed');
-  }
-  if (window.matchMedia('(min-width: 1101px)').matches) {
-    if (programFeature.parentElement !== programList) programList.insertBefore(programFeature, programList.firstElementChild);
-    programFeature.classList.remove('desktop-collapsed');
-    programFeature.classList.remove('compact-hidden');
-    document.querySelectorAll('.program-list > div.open').forEach(item => {
-      item.classList.remove('open');
-      item.setAttribute('aria-expanded', 'false');
-    });
-  } else if (programFeature.parentElement === programList) {
-    programGrid.insertBefore(programFeature, programList);
-    programFeature.classList.remove('desktop-collapsed');
-    programFeature.classList.remove('compact-hidden');
-  }
-};
-
-window.addEventListener('resize', syncProgramLayout);
-syncProgramLayout();
 
 const valueContents = [
   {
     image: 'assets/img/memories.png',
     title: '기억',
-    description: '우리가 물려받은 역사와 이름을 기억합니다. 평화는 그들의 희생을 기억하는 일에서부터 시작합니다.'
+    description: '우리가 물려받은 역사와 이름을 기억합니다.\n평화는 그들의 희생을 기억하는 일에서부터 시작합니다.'
   },
   {
     image: 'assets/img/moment1.png',
     title: '연결',
-    description: '서로 다른 세대와 문화가 만나 이야기를 나눕니다. 연결된 마음은 더 넓은 평화의 길을 만들어갑니다.'
+    description: '과거와 오늘,\n세대와 세대, 사람과 사람을 연결합니다.'
   },
   {
     image: 'assets/img/moment2.png',
     title: '참여',
-    description: '보고, 듣고, 만들고, 표현하는 모든 순간이 평화를 위한 참여가 됩니다. 당신의 작은 행동에서 변화가 시작됩니다.'
+    description: '관람하는 것에서 멈추지 않고\n평화를 직접 몸으로 체험하고 표현합니다.'
   },
   {
     image: 'assets/img/moment3.png',
     title: '평화',
-    description: '일상 속에서 서로를 존중하고 이해하는 마음을 나눕니다. 함께할 때 평화는 우리 곁에 계속됩니다.'
+    description: '평화를 과거의 이상으로 남기는 것이 아닌\n오늘날 함께 실천할 가치로 만듭니다.'
   },
   {
     image: 'assets/img/moment5.png',
     title: '미래',
-    description: '오늘 함께 만든 평화의 경험을 다음 세대에 전합니다. 우리의 약속은 더 나은 내일로 이어집니다.'
+    description: '평화를 이어 나가기 위한 기억과 약속을\n다음 세대의 이야기로 이어갑니다.'
   }
 ];
 
 const valueItems = document.querySelectorAll('.value-list li');
 const valueCard = document.querySelector('.value-card');
-const valueImage = valueCard?.querySelector(':scope > img');
-const valueTitle = valueCard?.querySelector('h4');
-const valueDescription = valueCard?.querySelector('p');
+const valueLayers = [...(valueCard?.querySelectorAll('.value-card-layer') || [])];
+let valueVisibleLayer = valueLayers[0];
+let valueHiddenLayer = valueLayers[1];
+let valueTransitioning = false;
+let valueAccordionTimer;
+let valueDissolveTimer;
+
+const setValueLayerContent = (layer, content) => {
+  const image = layer.querySelector('img');
+  const title = layer.querySelector('h4');
+  const description = layer.querySelector('p');
+  image.src = content.image;
+  image.alt = `${content.title}의 가치를 표현하는 축제 사진`;
+  title.textContent = content.title;
+  description.textContent = content.description;
+};
+
+const applyValueSelection = (item, index) => {
+  valueItems.forEach(valueItem => {
+    valueItem.classList.remove('active');
+    valueItem.setAttribute('aria-pressed', 'false');
+  });
+  item.classList.add('active');
+  item.setAttribute('aria-pressed', 'true');
+  valueCard.style.setProperty('--mobile-order', String((index * 2) + 3));
+
+  const content = valueContents[index];
+  setValueLayerContent(valueVisibleLayer, content);
+};
 
 valueItems.forEach((item, index) => {
   item.setAttribute('role', 'button');
@@ -299,23 +270,56 @@ valueItems.forEach((item, index) => {
   item.setAttribute('aria-pressed', index === 0 ? 'true' : 'false');
 
   const selectValue = () => {
-    if (item.classList.contains('active') || !valueCard) return;
+    if (item.classList.contains('active') || !valueCard || valueTransitioning) return;
+
+    if (window.matchMedia('(max-width: 920px)').matches) {
+      window.clearTimeout(valueAccordionTimer);
+      valueCard.classList.add('is-accordion-collapsed');
+
+      const collapseDuration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 320;
+      valueAccordionTimer = window.setTimeout(() => {
+        applyValueSelection(item, index);
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => valueCard.classList.remove('is-accordion-collapsed'));
+        });
+      }, collapseDuration);
+      return;
+    }
+
     valueItems.forEach(valueItem => {
       valueItem.classList.remove('active');
       valueItem.setAttribute('aria-pressed', 'false');
     });
     item.classList.add('active');
     item.setAttribute('aria-pressed', 'true');
-    valueCard.classList.add('is-changing');
+    valueTransitioning = true;
 
-    window.setTimeout(() => {
-      const content = valueContents[index];
-      valueImage.src = content.image;
-      valueImage.alt = `${content.title}의 가치를 표현하는 축제 사진`;
-      valueTitle.textContent = content.title;
-      valueDescription.textContent = content.description;
-      valueCard.classList.remove('is-changing');
-    }, 180);
+    const content = valueContents[index];
+    setValueLayerContent(valueHiddenLayer, content);
+    const incomingImage = valueHiddenLayer.querySelector('img');
+
+    const startDissolve = () => {
+      window.clearTimeout(valueDissolveTimer);
+      valueVisibleLayer.classList.remove('is-visible');
+      valueVisibleLayer.setAttribute('aria-hidden', 'true');
+      valueHiddenLayer.classList.add('is-visible');
+      valueHiddenLayer.setAttribute('aria-hidden', 'false');
+
+      const dissolveDuration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 460;
+      valueDissolveTimer = window.setTimeout(() => {
+        const previousVisibleLayer = valueVisibleLayer;
+        valueVisibleLayer = valueHiddenLayer;
+        valueHiddenLayer = previousVisibleLayer;
+        valueTransitioning = false;
+      }, dissolveDuration);
+    };
+
+    if (incomingImage.complete) {
+      window.requestAnimationFrame(() => window.requestAnimationFrame(startDissolve));
+    } else {
+      incomingImage.addEventListener('load', startDissolve, { once: true });
+      incomingImage.addEventListener('error', startDissolve, { once: true });
+    }
   };
 
   item.addEventListener('click', selectValue);
