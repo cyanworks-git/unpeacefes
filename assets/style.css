@@ -1329,6 +1329,28 @@ sub {
   }
 }
 
+/* Give the embedded map enough vertical room on tablet screens. */
+@media (min-width: 641px) and (max-width: 1100px) {
+  .location .access {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .access-map {
+    height: clamp(300px, 48vw, 420px);
+    aspect-ratio: auto;
+    object-fit: initial;
+  }
+}
+
+/* Keep the memorial scene on the right side of the tall mobile introduction. */
+@media (max-width: 640px) {
+  .about {
+    background-attachment: fixed;
+    background-position: right bottom;
+  }
+}
+
 /* Program tablet/mobile layout */
 @media(max-width:1100px) {
   .program {
