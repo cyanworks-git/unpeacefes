@@ -1839,7 +1839,8 @@ sub {
 }
 
 .news-list {
-  border-top: 2px solid var(--navy)
+  border-top: 2px solid var(--navy);
+  margin-top: 17px;
 }
 
 .news-list>a:not(.more) {
